@@ -47,6 +47,17 @@ function themeName(theme: "light" | "dark"): string {
 }
 
 /** Emits the same event names the element re-dispatches as `ena-browser:*`. */
+/**
+ * The action button pressed on mousedown, matched again on mouseup.
+ *
+ * Module-level, not per-grid: a host can rebuild the grid between the two
+ * events (Handsontable focuses a hidden input on mousedown, and a host that
+ * reacts to the resulting scroll or focus can tear the grid down), which would
+ * drop instance state and swallow the action. There is one primary pointer, so
+ * one slot is enough for any number of grids.
+ */
+let pressedAction: { action: string; key: string } | null = null;
+
 export class EnaGrid extends EventTarget {
   private hot: Handsontable | null = null;
   private config: EnaBrowserConfig;
@@ -110,6 +121,8 @@ export class EnaGrid extends EventTarget {
   private mount(): void {
     this.container.classList.add("ena-browser-grid");
     this.hot = new Handsontable(this.container, this.settings());
+    this.container.addEventListener("mousedown", this.onContainerMouseDown);
+    this.container.addEventListener("mouseup", this.onContainerMouseUp);
     this.container.addEventListener("click", this.onContainerClick);
     this.applyFiltersToGrid();
     this.applySortToGrid();
@@ -128,6 +141,8 @@ export class EnaGrid extends EventTarget {
   }
 
   destroy(): void {
+    this.container.removeEventListener("mousedown", this.onContainerMouseDown);
+    this.container.removeEventListener("mouseup", this.onContainerMouseUp);
     this.container.removeEventListener("click", this.onContainerClick);
     this.hot?.destroy();
     this.hot = null;
@@ -280,17 +295,67 @@ export class EnaGrid extends EventTarget {
     };
   }
 
+  /**
+   * The action button under the pointer, if any.
+   *
+   * Handsontable re-renders on mousedown, which detaches the button that was
+   * pressed, so `event.target` can be stale or an ancestor cell. What is under
+   * the pointer *now* is the reliable answer.
+   */
+  private actionButtonAt(event: MouseEvent): HTMLButtonElement | null {
+    const fromTarget = (event.target as HTMLElement | null)?.closest?.(
+      "button[data-ena-action]",
+    ) as HTMLButtonElement | null;
+    if (fromTarget?.isConnected) return fromTarget;
+    const under = document
+      .elementFromPoint(event.clientX, event.clientY)
+      ?.closest?.("button[data-ena-action]") as HTMLButtonElement | null;
+    return under && this.container.contains(under) ? under : null;
+  }
+
+  private static actionOf(button: HTMLButtonElement): { action: string; key: string } | null {
+    const action = button.dataset["enaAction"];
+    const key = button.dataset["enaKey"];
+    return action !== undefined && key !== undefined ? { action, key } : null;
+  }
+
+  private onContainerMouseDown = (event: MouseEvent): void => {
+    const button = this.actionButtonAt(event);
+    pressedAction = button ? EnaGrid.actionOf(button) : null;
+  };
+
+  /**
+   * Fire on mouseup rather than click: a re-render between the two replaces the
+   * button node, and the browser then either retargets the click at the cell or
+   * -- when the pressed node is detached outright -- emits no click at all.
+   * Requiring press and release on the same action keeps native click
+   * semantics (press here, release elsewhere does nothing).
+   */
+  private onContainerMouseUp = (event: MouseEvent): void => {
+    const pressed = pressedAction;
+    pressedAction = null;
+    if (!pressed) return;
+    const button = this.actionButtonAt(event);
+    const released = button ? EnaGrid.actionOf(button) : null;
+    if (!released || released.action !== pressed.action || released.key !== pressed.key) return;
+    event.stopPropagation();
+    this.emitRowAction(pressed.action, pressed.key);
+  };
+
+  /**
+   * Keyboard (and programmatic) activation only -- `detail` is 0 for those and
+   * non-zero for pointer clicks, which mouseup has already handled.
+   */
   private onContainerClick = (event: MouseEvent): void => {
+    if (event.detail !== 0) return;
     const button = (event.target as HTMLElement | null)?.closest?.(
       "button[data-ena-action]",
     ) as HTMLButtonElement | null;
     if (!button) return;
+    const activated = EnaGrid.actionOf(button);
+    if (!activated) return;
     event.stopPropagation();
-    const action = button.dataset["enaAction"];
-    const key = button.dataset["enaKey"];
-    if (action !== undefined && key !== undefined) {
-      this.emitRowAction(action, key);
-    }
+    this.emitRowAction(activated.action, activated.key);
   };
 
   private selectionColumn(): Handsontable.ColumnSettings {

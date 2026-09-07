@@ -105,3 +105,21 @@ test("row actions stay put and stay correct after filtering", async ({ page }) =
     .poll(() => firedActions(page))
     .toMatchObject([{ action: "release", key: "SAMEA4000003" }]);
 });
+
+test("a re-render between mousedown and mouseup still fires row-action", async ({ page }) => {
+  // Regression: a host that re-renders the grid on mousedown replaces the
+  // button node, so the click lands on the cell (the two buttons' common
+  // ancestor) rather than on a button. The action must still fire.
+  await openDemo(page, { entity: "samples" });
+  await watchRowActions(page);
+  await page.evaluate(() => {
+    const el = document.getElementById("browser") as unknown as { clearChanges(): void };
+    document.addEventListener("mousedown", () => el.clearChanges(), true);
+  });
+
+  await actionButtons(page, 1).nth(1).click();
+
+  await expect
+    .poll(() => firedActions(page))
+    .toMatchObject([{ action: "cancel", key: "ERS4000002" }]);
+});
