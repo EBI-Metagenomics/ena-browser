@@ -1,3 +1,5 @@
+# Standardised across the MIMICC/ENA repos. When bumping a rev, bump it in all
+# of them together.
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v6.0.0
@@ -5,9 +7,13 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: check-yaml
+        args: ["--allow-multiple-documents"]
       - id: check-json
-      - id: check-merge-conflict
+      - id: check-toml
       - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: mixed-line-ending
       - id: detect-private-key
 
   - repo: https://github.com/rbubley/mirrors-prettier
