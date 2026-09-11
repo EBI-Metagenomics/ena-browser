@@ -361,10 +361,8 @@ Files: `src/element.ts`, `src/index.ts`, `src/sources/rows.ts`.
    browser.~~ **Superseded.** CORS turned out not to block it (both hosts
    answer the `GET` + `Authorization` preflight permissively), so a
    backend-free app was viable — but "viable" is not "right": it meant a second
-   Reports client to maintain and a Webin password held in the page. The
-   standalone app is [`ena-browser-ui`](https://github.com/timrozday-mgnify/ena-browser-ui),
-   whose Django backend calls `ena_submission_toolkit.records`, and the adapter
-   is gone. This element makes no ENA request at all.
+   Reports client to maintain and a Webin password held in the page. The adapter
+   is gone; this element makes no ENA request at all.
 2. `docs/INTEGRATION.md` — a copy-pasteable snippet per consumer: the
    assistant's Records tab, the assistant's pairing panel, and an ESM import.
    **Written**, plus an event table and the theming contract.
