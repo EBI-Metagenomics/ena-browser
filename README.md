@@ -8,11 +8,10 @@ It is a _view_, not an application. It renders rows, lets the user filter, sort,
 pin, reorder and select them, tracks edits, and hands the result back to whoever
 embedded it. **It makes no ENA request of any kind** — no Reports API, no
 submission, no manifest, no Webin credentials. All of that lives in
-[`ena-api-client`](https://github.com/timrozday-mgnify/ena-api-client) (transport)
-and [`ena-submission-toolkit`](https://github.com/timrozday-mgnify/ena-submission-toolkit)
+[`ena-api-client`](https://github.com/EBI-Metagenomics/ena-api-client) (transport)
+and [`ena-submission-toolkit`](https://github.com/EBI-Metagenomics/ena-submission-toolkit)
 (`records.py` — listing, MODIFY, lifecycle actions), called server-side by the
-host: [`ena-browser-ui`](https://github.com/timrozday-mgnify/ena-browser-ui),
-`mimicc-ena-submission-assistant`, or yours. See §4.
+host: `mimicc-ena-submission-assistant` or yours. See §4.
 
 Three uses drive the design:
 
@@ -237,8 +236,8 @@ belongs to the host's backend, where it is shared rather than reimplemented:
 
 | Layer     | Repo                                                                                   | What it owns                                                                                                                                                                                      |
 | --------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Transport | [`ena-api-client`](https://github.com/timrozday-mgnify/ena-api-client)                 | `client.reports` (Reports API), `client.submit` (Submission API), `client.browser.xml()` (a record's current XML)                                                                                 |
-| Behaviour | [`ena-submission-toolkit`](https://github.com/timrozday-mgnify/ena-submission-toolkit) | `records.list_records` (the rows this element renders), `records.modify_records` (a change set → MODIFY), `records.record_action`, `records.editable_columns` (what to pass as `editableColumns`) |
+| Transport | [`ena-api-client`](https://github.com/EBI-Metagenomics/ena-api-client)                 | `client.reports` (Reports API), `client.submit` (Submission API), `client.browser.xml()` (a record's current XML)                                                                                 |
+| Behaviour | [`ena-submission-toolkit`](https://github.com/EBI-Metagenomics/ena-submission-toolkit) | `records.list_records` (the rows this element renders), `records.modify_records` (a change set → MODIFY), `records.record_action`, `records.editable_columns` (what to pass as `editableColumns`) |
 | View      | **this repo**                                                                          | rows in, events out                                                                                                                                                                               |
 
 So the host does roughly:
@@ -249,9 +248,8 @@ ena-browser:change          ->  records.modify_records(creds, entity, changes, t
 ena-browser:row-action      ->  records.record_action(creds, accession, action, test=...)
 ```
 
-Both [`ena-browser-ui`](https://github.com/timrozday-mgnify/ena-browser-ui) and
-`mimicc-ena-submission-assistant` are exactly that: an HTTP shell over
-`records.py` plus this element. Keeping credentials server-side is the point —
+`mimicc-ena-submission-assistant` is exactly that: an HTTP shell over `records.py`
+plus this element. Keeping credentials server-side is the point —
 a page that holds a Webin password is a page that can leak one.
 
 ---
