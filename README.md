@@ -323,7 +323,7 @@ npm run build      # ESM + IIFE + CSS + .d.ts into dist/
 | Path                                            | What lives there                                                                                             |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
 | `src/types.ts`                                  | The public API. Nothing else exports types.                                                                  |
-| `src/entities.ts`                               | Row keys, per-entity default columns, the ENA status vocabulary. Mirrors `ena-api-client/ena_api/models.py`. |
+| `src/entities.ts`                               | Row keys, per-entity default columns, the ENA status vocabulary. Mirrors `ena-api-client/src/ena_api/models/reports/` (generated). |
 | `src/filters.ts`                                | `FilterSpec` ↔ Handsontable conditions, plus a DOM-free evaluator.                                           |
 | `src/changes.ts`                                | `ChangeTracker` — edits in, change set out, reverts removed.                                                 |
 | `src/grid.ts`                                   | `EnaGrid`: the Handsontable instance and everything ENA-specific.                                            |
