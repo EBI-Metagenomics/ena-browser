@@ -3,7 +3,9 @@
  * default, and the ENA status vocabulary.
  *
  * Source of truth for the field names and statuses is
- * `ena-api-client/ena_api/models.py` (Reports API models, `extra="allow"`).
+ * `ena-api-client/src/ena_api/models/reports/` (Reports API models,
+ * `extra="allow"`), generated from ENA's own API definitions: the normalised
+ * names come from `REPORT_FIELD_ALIASES` in its `scripts/generate_models.py`.
  * They are data, not code — mirrored here deliberately, not imported.
  */
 
